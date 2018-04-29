@@ -4,8 +4,8 @@
     cell(v-for="(options, colIndex) in header"
         :type="options.type"
         :colIndex="colIndex"
-        :key="'row'+ index + '_' + colIndex"
-        :id="'row'+ index + '_' + colIndex"
+        :key="index + '_' + colIndex"
+        :id="index + '_' + colIndex"
         :cell-value="getRowByIndex(index)[colIndex].value"
         @cell-edited="onCellEdited")
 </template>

@@ -6,6 +6,9 @@
     span.edit(v-show="editMode")
       input(v-if="column.type == 'Text'" ref="inputText" v-model="editValue"
           v-on:keyup.enter="onClickAway" v-on:keyup.esc="onCancel")
+      input.datepicker(v-if="column.type == 'Date'" ref="inputDate" v-model="editValue"
+          @select="onDateSelect" @on-select="onDateSelect"
+          v-on:keyup.enter="onClickAway" v-on:keyup.esc="onCancel")
       input(v-if="column.type == 'Number'" type="number" ref="inputNumber" v-model="editValue"
           v-on:keyup.enter="onClickAway" v-on:keyup.esc="onCancel")
       select(v-if="column.type == 'Select'" ref="inputSelect" v-model="editValue"
@@ -16,6 +19,7 @@
 <script>
 import { mixin as clickaway } from 'vue-clickaway';
 import { mapGetters } from 'vuex';
+import { cloneDeep } from 'lodash';
 import validator from '../helpers/validator';
 
 export default {
@@ -24,15 +28,17 @@ export default {
   props: ['cellValue', 'colIndex', 'type', 'id'],
   data() {
     return {
+      selectInstance: null,
+      dateInstance: null,
       editValue: '',
       editMode: false,
       error: false,
     };
   },
   computed: {
-    ...mapGetters(['getColByIndex', 'header']),
+    ...mapGetters(['getColByIndex', 'header', 'editingCell']),
     column() {
-      return this.getColByIndex(this.colIndex);
+      return cloneDeep(this.getColByIndex(this.colIndex));
     },
   },
   mounted() {
@@ -40,19 +46,39 @@ export default {
     if (this.column.type === 'Select') {
       this.selectInstance = window.M.FormSelect.init(this.$refs.inputSelect);
     }
+    if (this.column.type === 'Date') {
+      this.dateInstance = window.M.Datepicker.init(this.$refs.inputDate, {
+        format: 'mm/dd/yyyy',
+        autoClose: true,
+        onClose: this.onDateSelect,
+      });
+    }
 
     if (!validator.isValid(this.editValue, this.column)) {
       this.error = true;
     }
   },
+  destroyed() {
+    if (this.column.type === 'Date') {
+      this.dateInstance.destroy();
+    }
+  },
   watch: {
     cellValue(newVal) {
-      // eslint-disable-next-line
-      console.log('cell value changes to', newVal);
       this.editValue = newVal;
+    },
+    editingCell() {
+      if (this.editMode && this.editingCell !== this.id) {
+        this.onClickAway();
+      }
     },
   },
   methods: {
+    onDateSelect() {
+      const event = document.createEvent('Event');
+      event.initEvent('input', true, true);
+      this.$refs.inputDate.dispatchEvent(event);
+    },
     onClickAway() {
       if (this.editMode) {
         this.submit();
@@ -63,17 +89,19 @@ export default {
       this.editMode = false;
     },
     submit() {
-      if (validator.isValid(this.editValue, this.column)) {
-        this.editMode = false;
+      if (!validator.isValid(this.editValue, this.column)) {
+        this.error = true;
+        this.$store.commit('editCell', { cellId: this.id });
+      } else {
         this.error = false;
-        return this.$emit('cell-edited', { column: this.colIndex, value: this.editValue });
       }
 
-      this.error = true;
-      return false;
+      this.editMode = false;
+      return this.$emit('cell-edited', { column: this.colIndex, value: this.editValue });
     },
     onContentClick() {
       this.editMode = true;
+      this.$store.commit('editCell', { cellId: this.id });
       this.$nextTick(() => {
         if (this.column.type === 'Select') {
           const event = document.createEvent('Event');

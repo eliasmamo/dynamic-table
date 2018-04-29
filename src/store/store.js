@@ -1,36 +1,29 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { keys, isObject, cloneDeep, map, reduce, times } from 'lodash';
+import { keys, isObject, cloneDeep, reduce, times } from 'lodash';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
     numberOfRowsToAdd: 10,
+    loading: false,
+    editingCell: '',
     table: {
-      headerLastIndex: 1,
-      rowsLastIndex: 1,
-      header: {
-        1: {
-          title: 'column1',
-          type: 'Text',
-          required: false,
-        },
-      },
-      rows: {
-        1: {
-          1: {
-            value: 'val1',
-          },
-        },
-      },
+      headerLastIndex: 0,
+      rowsLastIndex: 0,
+      header: {},
+      rows: {},
     },
   },
 
   getters: {
     getTable: state => state.table,
+    editingCell: state => state.editingCell,
     rowLastIndex: state => state.table.rowsLastIndex,
+    headerLastIndex: state => state.table.headerLastIndex,
     rows: state => state.table.rows,
+    loading: state => state.loading,
     header: state => state.table.header,
     rowsCount: state => keys(state.table.rows).length,
     columnsCount: state => keys(state.table.header).length,
@@ -58,8 +51,15 @@ export default new Vuex.Store({
         [row]: result,
       };
     },
+    updateHeaderCell(state, { colIndex, title }) {
+      const cell = cloneDeep(state.table.header[colIndex]);
+      cell.title = title;
+      state.table.header = {
+        ...state.table.header,
+        [colIndex]: cell,
+      };
+    },
     addNewColumn(state, { title, type, required, options }) {
-      debugger;
       let newHeader = { title, type, required };
       if (type === 'Select') {
         newHeader = { ...newHeader, options };
@@ -67,20 +67,17 @@ export default new Vuex.Store({
       state.table.headerLastIndex += 1;
       const header = { ...state.table.header, [state.table.headerLastIndex]: newHeader };
 
-      state.table.rowsLastIndex += 1;
-      debugger;
-      const rows = map(state.table.rows, item => ({
-        ...item,
-        [state.table.headerLastIndex]: { value: null },
-      }));
+      const rows = reduce(state.table.rows, (acc, item, key) => {
+        acc[key] = {
+          ...item,
+          [state.table.headerLastIndex]: { value: null },
+        };
+        return acc;
+      }, {});
 
       state.table = { ...state.table, header, rows };
     },
-    addSingleRow() {
-
-    },
     addRows(state) {
-      debugger;
       const emptyRow = reduce(state.table.header, (acc, col, key) => {
         acc[key] = { value: null };
         return acc;
@@ -98,6 +95,32 @@ export default new Vuex.Store({
         ...state.table.rows,
         ...rows,
       };
+    },
+    editCell(state, { cellId }) {
+      state.editingCell = cellId;
+    },
+    setTable(state, table) {
+      state.table = table;
+    },
+  },
+  actions: {
+    save({ state }) {
+      state.loading = true;
+      setTimeout(() => {
+        state.loading = false;
+        localStorage.setItem('table', JSON.stringify(this.state.table));
+      }, 200);
+    },
+    fetch({ commit, state }) {
+      state.loading = true;
+      setTimeout(() => {
+        state.loading = false;
+        let table = localStorage.getItem('table');
+        if (table.length > 0) {
+          table = JSON.parse(table);
+          commit('setTable', table);
+        }
+      }, 200);
     },
   },
 });

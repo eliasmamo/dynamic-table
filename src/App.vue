@@ -9,22 +9,30 @@
           a.waves-effect.waves-light.btn(@click.stop="onAddRowsClick")
             i.material-icons.left add
             | Add 10 Rows
+          a.waves-effect.waves-light.btn(@click.stop="onSaveClick")
+            i.material-icons.left add
+            | Save
           column-form(ref="form")
       .row
         .col.s12
           dynamic-table
-
+      appPreloader
 </template>
 
 <script>
 import dynamicTable from './components/DynamicTable';
 import ColumnForm from './components/ColumnForm';
+import appPreloader from './components/Preloader';
 
 export default {
   name: 'App',
   components: {
     dynamicTable,
     ColumnForm,
+    appPreloader,
+  },
+  mounted() {
+    this.$store.dispatch('fetch');
   },
   methods: {
     onAddColumnClick() {
@@ -32,6 +40,9 @@ export default {
     },
     onAddRowsClick() {
       this.$store.commit('addRows');
+    },
+    onSaveClick() {
+      this.$store.dispatch('save');
     },
   },
 };

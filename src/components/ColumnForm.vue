@@ -2,6 +2,8 @@
   #modal1.modal(ref="modal")
     .modal-content
       h4 Add Column
+      ul.errors
+        li(v-for="message in errors") {{ message }}
       form(v-on:submit.prevent="submit")
         .row
           .input-field.col.s6.validate(required)
@@ -29,6 +31,7 @@
 </template>
 <script>
 import Multiselect from 'vue-multiselect';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'ColumnForm',
@@ -42,9 +45,13 @@ export default {
       title: null,
       options: [],
       required: false,
+      errors: [],
       value: [],
       types: ['Text', 'Number', 'Date', 'Select'],
     };
+  },
+  computed: {
+    ...mapGetters(['headerLastIndex']),
   },
   mounted() {
     this.instance = window.M.Modal.init(this.$refs.modal);
@@ -53,10 +60,18 @@ export default {
       window.M.updateTextFields();
       this.$refs.input.focus();
     });
-    // window.M.updateTextFields();
   },
   methods: {
+    reset() {
+      this.title = '';
+      this.type = 'Text';
+      this.$refs.select.value = 'Text';
+      this.selectInstance = window.M.FormSelect.init(this.$refs.select);
+      this.options = [];
+      this.required = false;
+    },
     open() {
+      this.reset();
       this.instance.open();
       this.$refs.input.focus();
     },
@@ -68,8 +83,12 @@ export default {
       this.value.push({ name: newTag, code: newTag });
     },
     isValid() {
+      this.errors = [];
       // validate it and show errors if any
-      return true;
+      if (this.title.length === 0) this.errors.push('Title should not be empty');
+      if (this.type === 'Select' && this.options.length === 0) this.errors.push('Select should have options');
+
+      return this.errors.length === 0;
     },
     submit() {
       if (this.isValid()) {
@@ -81,6 +100,8 @@ export default {
           options: this.options,
           required: this.required,
         });
+
+        if (this.headerLastIndex === 1) this.$store.commit('addRows');
 
         this.close();
       }
@@ -94,6 +115,9 @@ export default {
   min-height: 350px;
   .vue-input-tag-wrapper {
     margin: 10px;
+  }
+  .errors {
+    color: red;
   }
 }
 </style>

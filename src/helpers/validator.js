@@ -1,10 +1,16 @@
 const ERRORS = {
   NOT_A_NUMBER: 'not a valid number',
   MUST_BE_SELECT_OPTION: 'value should be one of options',
+  IS_REQUIRED: 'value is required',
+  NOT_A_VALID_DATE: 'date is invalid',
 };
 
-function validRequired(value) {
-  return value !== null && value !== undefined;
+function validRequired(value, column) {
+  const result = [];
+  if (value === null || value === undefined || (column.type === 'Text' && value.length === 0)) {
+    result.push(ERRORS.IS_REQUIRED);
+  }
+  return result;
 }
 
 function validateValueByType(value, column) {
@@ -21,6 +27,11 @@ function validateValueByType(value, column) {
         result.push(ERRORS.MUST_BE_SELECT_OPTION);
       }
       break;
+    case 'Date':
+      if (isNaN(Date.parse(value))) {
+        result.push(ERRORS.NOT_A_VALID_DATE);
+      }
+      break;
     default: break;
   }
 
@@ -28,11 +39,11 @@ function validateValueByType(value, column) {
 }
 
 function validate(value, column) {
-  const errors = [
+  let errors = [
     ...validateValueByType(value, column),
   ];
 
-  if (column.required) errors.concat(validRequired(value));
+  if (column.required) errors = errors.concat(validRequired(value, column));
 
   return errors;
 }
