@@ -30,14 +30,10 @@
         @click.stop="submit") Add
 </template>
 <script>
-import Multiselect from 'vue-multiselect';
 import { mapGetters } from 'vuex';
 
 export default {
   name: 'ColumnForm',
-  components: {
-    Multiselect,
-  },
   data() {
     return {
       instance: null,
@@ -92,8 +88,6 @@ export default {
     },
     submit() {
       if (this.isValid()) {
-        // eslint-disable-next-line
-        console.log('submitting');
         this.$store.commit('addNewColumn', {
           title: this.title,
           type: this.type,

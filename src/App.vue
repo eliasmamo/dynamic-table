@@ -10,8 +10,11 @@
             i.material-icons.left add
             | Add 10 Rows
           a.waves-effect.waves-light.btn(@click.stop="onSaveClick")
-            i.material-icons.left add
+            i.material-icons.left save
             | Save
+          a.waves-effect.waves-light.btn(@click.stop="onDeleteClick")
+            i.material-icons.left delete
+            | Delete
           column-form(ref="form")
       .row
         .col.s12
@@ -44,6 +47,9 @@ export default {
     onSaveClick() {
       this.$store.dispatch('save');
     },
+    onDeleteClick() {
+      this.$store.dispatch('delete');
+    },
   },
 };
 </script>
@@ -51,5 +57,11 @@ export default {
 <style lang="scss">
 #app {
   margin-top: 60px;
+  table {
+    td, th {
+      max-width: 50px;
+      word-wrap: break-word;
+    }
+  }
 }
 </style>

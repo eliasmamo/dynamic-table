@@ -21,7 +21,6 @@
     "vue": "^2.5.2",
     "vue-clickaway": "^2.2.2",
     "vue-input-tag": "^1.0.3",
-    "vue-multiselect": "^2.1.0",
     "vuex": "^3.0.1"
   },
   "devDependencies": {

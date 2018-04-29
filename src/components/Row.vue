@@ -25,8 +25,6 @@ export default {
   },
   methods: {
     onCellEdited({ column, value }) {
-      // eslint-disable-next-line
-      console.log('on-cell-edited');
       this.$store.commit('updateRow', { row: this.index, column, value });
     },
   },

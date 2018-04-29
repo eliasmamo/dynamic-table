@@ -78,6 +78,7 @@ export default new Vuex.Store({
       state.table = { ...state.table, header, rows };
     },
     addRows(state) {
+      if (state.table.headerLastIndex === 0) return;
       const emptyRow = reduce(state.table.header, (acc, col, key) => {
         acc[key] = { value: null };
         return acc;
@@ -111,12 +112,25 @@ export default new Vuex.Store({
         localStorage.setItem('table', JSON.stringify(this.state.table));
       }, 200);
     },
+    delete({ state }) {
+      state.loading = true;
+      setTimeout(() => {
+        state.loading = false;
+        localStorage.removeItem('table');
+        state.table = {
+          headerLastIndex: 0,
+          rowsLastIndex: 0,
+          header: {},
+          rows: {},
+        };
+      }, 200);
+    },
     fetch({ commit, state }) {
       state.loading = true;
       setTimeout(() => {
         state.loading = false;
         let table = localStorage.getItem('table');
-        if (table.length > 0) {
+        if (table && table.length > 0) {
           table = JSON.parse(table);
           commit('setTable', table);
         }

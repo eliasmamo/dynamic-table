@@ -7,9 +7,9 @@
       input(v-if="column.type == 'Text'" ref="inputText" v-model="editValue"
           v-on:keyup.enter="onClickAway" v-on:keyup.esc="onCancel")
       input.datepicker(v-if="column.type == 'Date'" ref="inputDate" v-model="editValue"
-          @select="onDateSelect" @on-select="onDateSelect"
+          @select="onDateSelect" @on-select="onDateSelect" placeholder="click to edit"
           v-on:keyup.enter="onClickAway" v-on:keyup.esc="onCancel")
-      input(v-if="column.type == 'Number'" type="number" ref="inputNumber" v-model="editValue"
+      input(v-if="column.type == 'Number'" ref="inputNumber" v-model="editValue"
           v-on:keyup.enter="onClickAway" v-on:keyup.esc="onCancel")
       select(v-if="column.type == 'Select'" ref="inputSelect" v-model="editValue"
           v-on:keyup.enter="onClickAway" v-on:keyup.esc="onCancel")
@@ -31,7 +31,6 @@ export default {
       selectInstance: null,
       dateInstance: null,
       editValue: '',
-      editMode: false,
       error: false,
     };
   },
@@ -39,6 +38,9 @@ export default {
     ...mapGetters(['getColByIndex', 'header', 'editingCell']),
     column() {
       return cloneDeep(this.getColByIndex(this.colIndex));
+    },
+    editMode() {
+      return this.editingCell === this.id;
     },
   },
   mounted() {
@@ -59,7 +61,7 @@ export default {
     }
   },
   destroyed() {
-    if (this.column.type === 'Date') {
+    if (this.column && this.column.type === 'Date') {
       this.dateInstance.destroy();
     }
   },
@@ -67,9 +69,9 @@ export default {
     cellValue(newVal) {
       this.editValue = newVal;
     },
-    editingCell() {
-      if (this.editMode && this.editingCell !== this.id) {
-        this.onClickAway();
+    editingCell(newVal, oldVal) {
+      if (oldVal === this.id && newVal !== this.id) {
+        this.submit();
       }
     },
   },
@@ -86,21 +88,19 @@ export default {
     },
     onCancel() {
       this.editValue = this.cellValue;
-      this.editMode = false;
+      this.$store.commit('editCell', { cellId: null });
     },
     submit() {
       if (!validator.isValid(this.editValue, this.column)) {
         this.error = true;
-        this.$store.commit('editCell', { cellId: this.id });
       } else {
         this.error = false;
       }
 
-      this.editMode = false;
+      this.$store.commit('editCell', { cellId: null });
       return this.$emit('cell-edited', { column: this.colIndex, value: this.editValue });
     },
     onContentClick() {
-      this.editMode = true;
       this.$store.commit('editCell', { cellId: this.id });
       this.$nextTick(() => {
         if (this.column.type === 'Select') {
@@ -131,10 +131,5 @@ td {
     border: 1px solid red;
   }
   cursor: pointer;
-  span {
-    input {
-      width: inherit;
-    }
-  }
 }
 </style>

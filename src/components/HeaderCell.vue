@@ -19,7 +19,6 @@ export default {
   data() {
     return {
       editValue: '',
-      editMode: false,
       error: false,
     };
   },
@@ -31,11 +30,14 @@ export default {
     header() {
       return this.getColByIndex(this.colIndex);
     },
+    editMode() {
+      return this.editingCell === this.id;
+    },
   },
   watch: {
-    editingCell() {
-      if (this.editMode && this.editingCell !== this.id) {
-        this.onClickAway();
+    editingCell(newVal, oldVal) {
+      if (oldVal === this.id && newVal !== this.id) {
+        this.submit();
       }
     },
   },
@@ -47,22 +49,20 @@ export default {
     },
     onCancel() {
       this.editValue = this.header.title;
-      this.editMode = false;
+      this.$store.commit('editCell', { cellId: null });
     },
     submit() {
       if (this.editValue.length === 0) {
         this.error = true;
-        this.$store.commit('editCell', { cellId: this.id });
       } else {
         this.error = false;
       }
 
-      this.editMode = false;
+      this.$store.commit('editCell', { cellId: null });
       return this.$store.commit('updateHeaderCell', { colIndex: this.colIndex, title: this.editValue });
     },
     onContentClick() {
       this.$store.commit('editCell', { cellId: this.id });
-      this.editMode = true;
       this.$nextTick(() => {
         this.$refs.input.focus();
       });
