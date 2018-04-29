@@ -5,11 +5,10 @@
       form(v-on:submit.prevent="submit")
         .row
           .input-field.col.s6.validate(required)
-            input(placeholder="Enter column title." name="column_title" v-model="title")
+            input(placeholder="Enter column title." ref="input" name="column_title" v-model="title")
             label.active(for="column_title") Column title
           .input-field.col.s6
             select(v-model="type" ref="select")
-              option(value="" disabled="" selected="") Choose your option
               option(:value="item" v-for="item in types") {{item}}
             label Type
           input-tag(
@@ -39,7 +38,7 @@ export default {
   data() {
     return {
       instance: null,
-      type: null,
+      type: 'Text',
       title: null,
       options: [],
       required: false,
@@ -50,12 +49,16 @@ export default {
   mounted() {
     this.instance = window.M.Modal.init(this.$refs.modal);
     this.selectInstance = window.M.FormSelect.init(this.$refs.select);
-    this.$nextTick(() => window.M.updateTextFields());
+    this.$nextTick(() => {
+      window.M.updateTextFields();
+      this.$refs.input.focus();
+    });
     // window.M.updateTextFields();
   },
   methods: {
     open() {
       this.instance.open();
+      this.$refs.input.focus();
     },
     close() {
       this.instance.close();

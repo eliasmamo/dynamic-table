@@ -6,7 +6,7 @@
           a.waves-effect.waves-light.btn(@click.stop="onAddColumnClick")
             i.material-icons.left add
             | Add Column
-          a.waves-effect.waves-light.btn
+          a.waves-effect.waves-light.btn(@click.stop="onAddRowsClick")
             i.material-icons.left add
             | Add 10 Rows
           column-form(ref="form")
@@ -29,6 +29,9 @@ export default {
   methods: {
     onAddColumnClick() {
       this.$refs.form.open();
+    },
+    onAddRowsClick() {
+      this.$store.commit('addRows');
     },
   },
 };

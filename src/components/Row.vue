@@ -3,8 +3,9 @@
     td {{ index }}
     cell(v-for="(options, colIndex) in header"
         :type="options.type"
-        :column="colIndex"
+        :colIndex="colIndex"
         :key="'row'+ index + '_' + colIndex"
+        :id="'row'+ index + '_' + colIndex"
         :cell-value="getRowByIndex(index)[colIndex].value"
         @cell-edited="onCellEdited")
 </template>

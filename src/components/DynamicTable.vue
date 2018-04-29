@@ -7,7 +7,7 @@
     table(v-if="columnsCount > 0")
       thead
         tr
-          th #
+          th(width="50px") #
           th(v-for="(column, index) in header") {{ column.title }}
       tbody
         row(v-for="row, index in rows" :index="index" :key="index")

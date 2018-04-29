@@ -1,19 +1,20 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { keys, isObject, cloneDeep, map } from 'lodash';
+import { keys, isObject, cloneDeep, map, reduce, times } from 'lodash';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
+    numberOfRowsToAdd: 10,
     table: {
       headerLastIndex: 1,
       rowsLastIndex: 1,
       header: {
         1: {
           title: 'column1',
-          type: 'string',
-          required: 'false',
+          type: 'Text',
+          required: false,
         },
       },
       rows: {
@@ -37,6 +38,13 @@ export default new Vuex.Store({
       // eslint-disable-next-line
       return (index) => {
         return state.table.rows && isObject(state.table.rows) ? state.table.rows[index] : null;
+      };
+    },
+    getColByIndex(state) {
+      // eslint-disable-next-line
+      return (index) => {
+        const headerNotEmpty = state.table.header && isObject(state.table.header);
+        return headerNotEmpty ? state.table.header[index] : null;
       };
     },
   },
@@ -66,7 +74,30 @@ export default new Vuex.Store({
         [state.table.headerLastIndex]: { value: null },
       }));
 
-      state.table = { header, rows };
+      state.table = { ...state.table, header, rows };
+    },
+    addSingleRow() {
+
+    },
+    addRows(state) {
+      debugger;
+      const emptyRow = reduce(state.table.header, (acc, col, key) => {
+        acc[key] = { value: null };
+        return acc;
+      }, {});
+
+      let rows = times(10, () => cloneDeep(emptyRow));
+
+      rows = reduce(rows, (acc, row) => {
+        state.table.rowsLastIndex += 1;
+        acc[state.table.rowsLastIndex] = row;
+        return acc;
+      }, {});
+
+      state.table.rows = {
+        ...state.table.rows,
+        ...rows,
+      };
     },
   },
 });
